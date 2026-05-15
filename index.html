@@ -524,26 +524,12 @@ function renderVisitorPage() {
 
                 <!-- 访客提示 Banner -->
                 <div class="px-4 mt-3">
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer active:bg-gray-100" onclick="toggleVisitorTooltip(this)">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer active:bg-gray-100" onclick="showVisitorModal()">
                         <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span class="text-xs text-gray-600 flex-1">该用户未持有老师认证标识</span>
                         <span class="text-gray-400 text-sm select-none">[?]</span>
-                        <div id="visitorTooltip" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-50">
-                            <div class="text-sm font-medium text-gray-900 mb-3">认证老师标识如下：</div>
-                            <div class="space-y-2">
-                                <div class="flex items-center gap-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
-                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-md font-medium">官方认证老师</div>
-                                    <span class="text-xs text-gray-600">平台官方认证教师</span>
-                                </div>
-                                <div class="flex items-center gap-3 p-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg">
-                                    <div class="bg-gradient-to-r from-blue-400 to-cyan-400 text-white text-xs px-2 py-1 rounded-md font-medium">平台老师</div>
-                                    <span class="text-xs text-gray-600">平台合作教师</span>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-xs text-gray-400">未展示以上标识的用户，请审慎甄别</div>
-                        </div>
                     </div>
                 </div>
 
@@ -717,10 +703,37 @@ function renderOfficialTeacherPage() {
 /* ============================
    通用工具函数
    ============================ */
-function toggleVisitorTooltip(element) {
-    const tooltip = element.querySelector('#visitorTooltip');
-    if (tooltip) tooltip.classList.toggle('hidden');
+function showVisitorModal() {
+    const phoneInner = document.getElementById('phoneInner');
+    const modalId = 'modal_visitor_' + Date.now();
+
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'absolute inset-0 z-50 flex flex-col justify-end';
+    modal.innerHTML = `
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('${modalId}')"></div>
+        <div class="slide-up bg-white rounded-t-3xl p-6 relative z-10 w-full" style="max-height: 70%; overflow-y: auto;">
+            <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
+            <div class="mb-6">
+                <div class="text-sm font-medium text-gray-900 mb-4">认证老师标识如下：</div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium">官方认证老师</div>
+                        <span class="text-sm text-gray-600">平台官方认证教师</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
+                        <div class="bg-gradient-to-r from-blue-400 to-cyan-400 text-white text-xs px-3 py-1.5 rounded-lg font-medium">平台老师</div>
+                        <span class="text-sm text-gray-600">平台合作教师</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-gray-400">未展示以上标识的用户，请审慎甄别</div>
+            </div>
+            <button onclick="closeModal('${modalId}')" class="w-full bg-gray-100 text-gray-700 py-4 rounded-xl text-sm font-medium">知道了</button>
+        </div>
+    `;
+    phoneInner.appendChild(modal);
 }
+
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.remove();
