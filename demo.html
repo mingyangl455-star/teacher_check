@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非官方老师社区治理 - 产品Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' }
+                    },
+                    fontFamily: { sans: ['Inter', 'Noto Sans SC', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+        .fade-in { animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .phone-frame { border: 12px solid #1f2937; border-radius: 40px; overflow: hidden; position: relative; background: #fff; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 28px; background: #1f2937; border-radius: 0 0 20px 20px; z-index: 50; }
+        .phone-inner { position: absolute; top: 28px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+        .screen-content { height: 100%; overflow-y: auto; position: relative; }
+        .screen-content::-webkit-scrollbar { display: none; }
+        .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .verified-badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .official-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: white; border-top: 1px solid #f3f4f6; z-index: 20; }
+        .page-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 60px; }
+        .page-scroll { flex: 1; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="mb-5 flex items-center gap-3 bg-white rounded-full px-5 py-2.5 shadow-sm border border-gray-200">
+        <span class="text-sm text-gray-500 font-medium">切换视角：</span>
+        <select id="roleSelector" onchange="switchRole(this.value)" class="text-sm bg-transparent border-none focus:ring-0 text-gray-900 font-medium cursor-pointer">
+            <option value="teacher_unsubmitted">待认证老师（未提交）</option>
+            <option value="teacher_rejected">待认证老师（不通过）</option>
+            <option value="visitor">访客查看未认证老师</option>
+            <option value="official_teacher">官方认证老师主页</option>
+        </select>
+    </div>
+
+    <div class="phone-frame w-[375px] h-[750px]">
+        <div class="phone-notch"></div>
+        <div class="phone-inner" id="phoneInner"></div>
+    </div>
+
+<script>
+let currentRole = 'teacher_unsubmitted';
+const userData = {
+    nickname: 'Teacher_Alice',
+    htId: '@teacher_alice_2024',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+    bio: 'English teacher with 5 years experience. Let\'s learn together!'
+};
+
+function switchRole(role) {
+    currentRole = role;
+    if (role === 'teacher_unsubmitted') renderChatPage('unsubmitted');
+    else if (role === 'teacher_rejected') renderChatPage('rejected');
+    else if (role === 'visitor') renderVisitorPage();
+    else if (role === 'official_teacher') renderOfficialTeacherPage();
+}
+
+function getTabBar(activeTab) {
+    const tabs = [
+        { id: 'home', label: '首页', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+        { id: 'discover', label: '发现', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+        { id: 'messages', label: '消息', icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z' },
+        { id: 'me', label: '我的', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
+    ];
+    return `<div class="tab-bar flex justify-around items-center">
+        ${tabs.map(t => {
+            const isActive = t.id === activeTab;
+            const color = isActive ? 'text-brand-600' : 'text-gray-400';
+            const weight = isActive ? 'font-medium' : '';
+            let onclick = '';
+            if (t.id === 'messages') onclick = `onclick="renderChatPage(currentRole === 'teacher_rejected' ? 'rejected' : 'unsubmitted')"`;
+            else if (t.id === 'me') onclick = `onclick="renderProfilePage(currentRole === 'teacher_rejected' ? 'rejected' : 'unsubmitted')"`;
+            return `<div class="flex flex-col items-center ${color} gap-0.5 cursor-pointer" ${onclick}>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${t.icon}"/></svg>
+                <span class="text-[10px] ${weight}">${t.label}</span>
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+/* ============================
+   1. 聊天列表页
+   ============================ */
+function renderChatPage(status) {
+    const inner = document.getElementById('phoneInner');
+    inner.innerHTML = `
+        <div class="page-container fade-in">
+            <div class="page-scroll bg-white">
+                <!-- 顶部导航 -->
+                <div class="bg-white border-b border-gray-100 px-4 pt-2 pb-3 flex items-center justify-between sticky top-0 z-10">
+                    <h1 class="text-lg font-bold text-gray-900">消息</h1>
+                    <button class="text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
+                </div>
+
+                <!-- 聊天列表 -->
+                <div>
+                    <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
+                        <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 font-bold text-sm">AL</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-gray-900">Alex</h3>
+                                <span class="text-xs text-gray-400">10:30</span>
+                            </div>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">Are you available for a class tomorrow?</p>
+                        </div>
+                    </div>
+
+                    <div onclick="renderSystemNoticePage()" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50 cursor-pointer bg-brand-50/50">
+                        <div class="w-12 h-12 rounded-full bg-brand-600 flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-1">系统通知 <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">1</span></h3>
+                                <span class="text-xs text-gray-400">昨天</span>
+                            </div>
+                            <p class="text-xs text-brand-600 truncate mt-0.5 font-medium">Hi！我们注意到你的昵称/HT ID中包含「Teacher」...</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
+                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-sm">HT</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-gray-900">HelloTalk 官方</h3>
+                                <span class="text-xs text-gray-400">周一</span>
+                            </div>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">本周语言学习排行榜已更新！</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
+                        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">MK</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-gray-900">Mike</h3>
+                                <span class="text-xs text-gray-400">3天前</span>
+                            </div>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">Thanks for the correction!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ${getTabBar('messages')}
+        </div>
+    `;
+}
+
+/* ============================
+   2. 系统通知详情页
+   ============================ */
+function renderSystemNoticePage() {
+    const inner = document.getElementById('phoneInner');
+    inner.innerHTML = `
+        <div class="page-container fade-in">
+            <div class="page-scroll bg-white">
+                <div class="bg-white border-b border-gray-100 px-4 pt-2 pb-3 flex items-center gap-3 sticky top-0 z-10">
+                    <button onclick="renderChatPage(currentRole === 'teacher_rejected' ? 'rejected' : 'unsubmitted')" class="text-gray-500 -ml-1 p-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <h1 class="text-lg font-bold text-gray-900">系统通知</h1>
+                </div>
+
+                <div class="px-4 pt-4 pb-8 space-y-4">
+                    <div onclick="renderProfilePage('unsubmitted')" class="bg-brand-50 border border-brand-100 rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-transform">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h3 class="text-sm font-semibold text-gray-900">官方教师认证邀请</h3>
+                                    <span class="text-xs text-gray-400">昨天</span>
+                                </div>
+                                <p class="text-sm text-gray-700 leading-relaxed">Hi！我们注意到你的昵称/HT ID中包含「Teacher」，如果你有意在平台上提供教学服务，可申请官方教师认证，认证后获得专属标识，帮助学习者更容易找到你。</p>
+                                <div class="mt-3 text-brand-600 text-sm font-medium">点击下方链接即可开始认证 👇</div>
+                                <div class="mt-2 inline-flex items-center gap-1 bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg">
+                                    <span>立即认证</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </div>
+                                <div class="mt-2 text-xs text-gray-400">消息将在此页面保留 90 天</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h3 class="text-sm font-semibold text-gray-900">账号安全提醒</h3>
+                                    <span class="text-xs text-gray-400">3天前</span>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed">你的账号在新设备上登录，如非本人操作，请及时修改密码。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ${getTabBar('messages')}
+        </div>
+    `;
+}
+
+/* ============================
+   3. 本人 Profile 页（含 Banner）
+   ============================ */
+function renderProfilePage(status) {
+    const isUnsubmitted = status === 'unsubmitted';
+    const bannerText = isUnsubmitted ? '你还未完成老师认证' : '你的老师认证申请未通过';
+    const bannerColor = isUnsubmitted ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-red-50 border-red-200 text-red-800';
+    const bannerIcon = isUnsubmitted ? 'text-amber-500' : 'text-red-500';
+    const inner = document.getElementById('phoneInner');
+
+    inner.innerHTML = `
+        <div class="page-container fade-in">
+            <div class="page-scroll bg-white">
+                <!-- Profile Header -->
+                <div class="relative">
+                    <div class="h-32 bg-gradient-to-br from-brand-400 to-brand-600"></div>
+                    <div class="absolute top-12 left-0 right-0 px-4">
+                        <div class="flex items-end gap-4">
+                            <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
+                                <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
+                            </div>
+                            <div class="mb-1">
+                                <h2 class="text-lg font-bold text-gray-900">${userData.nickname}</h2>
+                                <div class="text-sm text-gray-500">${userData.htId}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner -->
+                <div class="mt-14 px-4">
+                    <div class="${bannerColor} border rounded-xl p-4 flex items-start gap-3 cursor-pointer active:opacity-80" onclick="showTeacherModal('${status}')">
+                        <svg class="w-5 h-5 ${bannerIcon} mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">${bannerText}</div>
+                            <div class="text-xs mt-1 opacity-80">点击了解详情</div>
+                        </div>
+                        <svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <div class="px-4 mt-4">
+                    <div class="text-sm text-gray-700 leading-relaxed">${userData.bio}</div>
+                </div>
+
+                <!-- Stats -->
+                <div class="px-4 mt-6">
+                    <div class="flex justify-around py-4 border-y border-gray-100">
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">1.2k</div><div class="text-xs text-gray-500">关注者</div></div>
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">856</div><div class="text-xs text-gray-500">关注</div></div>
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">234</div><div class="text-xs text-gray-500">Moments</div></div>
+                    </div>
+                </div>
+
+                <!-- Moments -->
+                <div class="px-4 mt-6 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-3">Moments</h3>
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="text-sm text-gray-700">New English speaking class starts next week! Join me to improve your pronunciation 🎓</div>
+                            <div class="text-xs text-gray-400 mt-2">2小时前</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="text-sm text-gray-700">Looking for serious students who want to learn business English. DM me for details!</div>
+                            <div class="text-xs text-gray-400 mt-2">昨天</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ${getTabBar('me')}
+        </div>
+    `;
+}
+
+/* ============================
+   4. 第一次弹窗（Banner 点击）
+   ============================ */
+function showTeacherModal(status) {
+    const isUnsubmitted = status === 'unsubmitted';
+    const phoneInner = document.getElementById('phoneInner');
+    const modalId = 'modal_' + Date.now();
+
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'absolute inset-0 z-50 flex flex-col justify-end';
+    modal.innerHTML = `
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('${modalId}')"></div>
+        <div class="slide-up bg-white rounded-t-3xl p-6 relative z-10 w-full" style="max-height: 70%; overflow-y: auto;">
+            <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">平台已推出官方教师认证体系</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">不建议未认证用户使用「Teacher」作为昵称或 HT ID，以免其他用户产生误解。</p>
+            </div>
+            <div class="space-y-3">
+                ${isUnsubmitted ? `
+                    <button onclick="showToast('跳转至认证 H5 页面...')" class="w-full bg-brand-600 text-white py-4 rounded-xl text-sm font-medium">去认证</button>
+                    <button onclick="closeModal('${modalId}'); setTimeout(() => showSecondModal(), 200)" class="w-full bg-white border border-gray-300 text-gray-700 py-4 rounded-xl text-sm font-medium">暂不认证</button>
+                ` : `
+                    <button onclick="showToast('跳转至认证 H5 页面...')" class="w-full bg-brand-600 text-white py-4 rounded-xl text-sm font-medium">重新认证</button>
+                    <button onclick="showToast('跳转至个人资料页面...')" class="w-full bg-white border border-gray-300 text-gray-700 py-4 rounded-xl text-sm font-medium">修改昵称/ID</button>
+                `}
+            </div>
+        </div>
+    `;
+    phoneInner.appendChild(modal);
+}
+
+/* ============================
+   5. 第二次弹窗（暂不认证后）
+   ============================ */
+function showSecondModal() {
+    const phoneInner = document.getElementById('phoneInner');
+    const modalId = 'modal2_' + Date.now();
+
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'absolute inset-0 z-[60] flex flex-col justify-end';
+    modal.innerHTML = `
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('${modalId}')"></div>
+        <div class="slide-up bg-white rounded-t-3xl p-6 relative z-10 w-full" style="max-height: 70%; overflow-y: auto;">
+            <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">你可以将昵称或 HT ID 修改</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">修改为不含「Teacher」的名称以移除主页提示。</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="closeModal('${modalId}'); renderEditProfilePage()" class="w-full bg-brand-600 text-white py-4 rounded-xl text-sm font-medium">去修改</button>
+                <button onclick="closeModal('${modalId}'); showToast('Banner 将持续展示')" class="w-full bg-white border border-gray-300 text-gray-700 py-4 rounded-xl text-sm font-medium">暂不修改</button>
+            </div>
+            <div class="mt-4 text-xs text-gray-400 text-center">系统已检测，该用户近一年内未修改过 HT ID，允许修改</div>
+        </div>
+    `;
+    phoneInner.appendChild(modal);
+}
+
+/* ============================
+   6. 个人资料编辑页
+   ============================ */
+function renderEditProfilePage() {
+    const inner = document.getElementById('phoneInner');
+    inner.innerHTML = `
+        <div class="page-container fade-in">
+            <div class="page-scroll bg-white">
+                <div class="bg-white border-b border-gray-100 px-4 pt-2 pb-3 flex items-center gap-3 sticky top-0 z-10">
+                    <button onclick="renderProfilePage('unsubmitted')" class="text-gray-500 -ml-1 p-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <h1 class="text-lg font-bold text-gray-900">编辑个人资料</h1>
+                    <button id="saveBtn" onclick="saveProfile()" class="ml-auto text-brand-600 text-sm font-medium disabled:text-gray-300" disabled>保存</button>
+                </div>
+
+                <div class="px-4 pt-6 space-y-6 pb-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
+                            <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
+                        </div>
+                        <button class="mt-2 text-brand-600 text-sm font-medium">更换头像</button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1.5">昵称</label>
+                        <div class="relative">
+                            <input id="nicknameInput" type="text" value="${userData.nickname}" oninput="checkTeacherKeyword()" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all">
+                            <div id="nicknameWarning" class="hidden absolute right-3 top-3 text-amber-500">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                        </div>
+                        <p id="nicknameTip" class="text-xs text-amber-600 mt-1.5 hidden">昵称包含「Teacher」，未认证用户使用该词可能让其他用户产生误解</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1.5">HT ID</label>
+                        <div class="relative">
+                            <input id="htIdInput" type="text" value="${userData.htId}" oninput="checkTeacherKeyword()" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all">
+                            <div id="htIdWarning" class="hidden absolute right-3 top-3 text-amber-500">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                        </div>
+                        <p id="htIdTip" class="text-xs text-amber-600 mt-1.5 hidden">HT ID 包含「Teacher」，未认证用户使用该词可能让其他用户产生误解</p>
+                        <p class="text-xs text-gray-400 mt-1.5">近一年内已修改 0 次，仍可修改</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1.5">自我介绍</label>
+                        <textarea class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all resize-none" rows="3">${userData.bio}</textarea>
+                    </div>
+
+                    <div id="saveBanner" class="hidden bg-green-50 border border-green-200 text-green-800 text-sm px-4 py-3 rounded-xl text-center">
+                        修改已保存，主页提示 Banner 已移除
+                    </div>
+                </div>
+            </div>
+            ${getTabBar('me')}
+        </div>
+    `;
+}
+
+function checkTeacherKeyword() {
+    const nickname = document.getElementById('nicknameInput').value;
+    const htId = document.getElementById('htIdInput').value;
+    const saveBtn = document.getElementById('saveBtn');
+
+    document.getElementById('nicknameWarning').classList.toggle('hidden', !/teacher/i.test(nickname));
+    document.getElementById('htIdWarning').classList.toggle('hidden', !/teacher/i.test(htId));
+    document.getElementById('nicknameTip').classList.toggle('hidden', !/teacher/i.test(nickname));
+    document.getElementById('htIdTip').classList.toggle('hidden', !/teacher/i.test(htId));
+
+    const changed = nickname !== userData.nickname || htId !== userData.htId;
+    saveBtn.disabled = !changed;
+}
+
+function saveProfile() {
+    const nickname = document.getElementById('nicknameInput').value;
+    const htId = document.getElementById('htIdInput').value;
+    userData.nickname = nickname;
+    userData.htId = htId;
+    const stillHasTeacher = /teacher/i.test(nickname) || /teacher/i.test(htId);
+
+    if (stillHasTeacher) {
+        showToast('资料已保存，但昵称/ID 仍含「Teacher」，Banner 将持续展示');
+    } else {
+        document.getElementById('saveBanner').classList.remove('hidden');
+        setTimeout(() => showToast('资料已保存，主页提示 Banner 已移除'), 300);
+    }
+}
+
+/* ============================
+   7. 访客查看未认证老师
+   ============================ */
+function renderVisitorPage() {
+    const inner = document.getElementById('phoneInner');
+    inner.innerHTML = `
+        <div class="page-container fade-in">
+            <div class="page-scroll bg-white">
+                <div class="relative">
+                    <div class="h-32 bg-gradient-to-br from-brand-400 to-brand-600"></div>
+                    <div class="absolute top-12 left-0 right-0 px-4">
+                        <div class="flex items-end gap-4">
+                            <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
+                                <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
+                            </div>
+                            <div class="mb-1">
+                                <h2 class="text-lg font-bold text-gray-900">${userData.nickname}</h2>
+                                <div class="text-sm text-gray-500">${userData.htId}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-14 px-4">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3 cursor-pointer relative active:bg-gray-100" onclick="toggleVisitorTooltip(this)">
+                        <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-700">该用户未持有老师认证标识</div>
+                            <div class="text-xs text-gray-400 mt-1">点击了解官方认证标识</div>
+                        </div>
+                        <span class="text-gray-400 text-lg select-none">[?]</span>
+                        <div id="visitorTooltip" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-50">
+                            <div class="text-sm font-medium text-gray-900 mb-3">认证老师标识如下：</div>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                                    <div class="verified-badge text-white text-xs px-2 py-1 rounded-md font-medium">官方认证老师</div>
+                                    <span class="text-xs text-gray-600">平台官方认证教师</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg">
+                                    <div class="official-badge text-white text-xs px-2 py-1 rounded-md font-medium">平台老师</div>
+                                    <span class="text-xs text-gray-600">平台合作教师</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-400">未展示以上标识的用户，请审慎甄别</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 mt-4"><div class="text-sm text-gray-700 leading-relaxed">${userData.bio}</div></div>
+                <div class="px-4 mt-6">
+                    <div class="flex justify-around py-4 border-y border-gray-100">
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">1.2k</div><div class="text-xs text-gray-500">关注者</div></div>
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">856</div><div class="text-xs text-gray-500">关注</div></div>
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">234</div><div class="text-xs text-gray-500">Moments</div></div>
+                    </div>
+                </div>
+                <div class="px-4 mt-6 pb-4">
+                    <div class="flex gap-3">
+                        <button class="flex-1 bg-brand-600 text-white py-3 rounded-xl text-sm font-medium">关注</button>
+                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl text-sm font-medium">发消息</button>
+                    </div>
+                </div>
+            </div>
+            ${getTabBar('home')}
+        </div>
+    `;
+}
+
+/* ============================
+   8. 官方认证老师主页
+   ============================ */
+function renderOfficialTeacherPage() {
+    const inner = document.getElementById('phoneInner');
+    inner.innerHTML = `
+        <div class="page-container fade-in">
+            <div class="page-scroll bg-white">
+                <div class="relative">
+                    <div class="h-32 bg-gradient-to-br from-purple-400 to-pink-500"></div>
+                    <div class="absolute top-12 left-0 right-0 px-4">
+                        <div class="flex items-end gap-4">
+                            <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
+                                <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
+                            </div>
+                            <div class="mb-1">
+                                <h2 class="text-lg font-bold text-gray-900">Teacher_Bob</h2>
+                                <div class="text-sm text-gray-500">@official_teacher_bob</div>
+                                <div class="mt-1.5 inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 text-xs px-2.5 py-1 rounded-full">
+                                    <svg class="w-3.5 h-3.5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span class="font-medium">官方认证老师，有 TEFL 证书</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-20 px-4">
+                    <div class="text-sm text-gray-700 leading-relaxed">Professional English teacher with TESOL certification. 8 years of experience teaching online. Join my courses for structured learning! 🎓</div>
+                </div>
+                <div class="px-4 mt-6">
+                    <div class="flex justify-around py-4 border-y border-gray-100">
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">5.6k</div><div class="text-xs text-gray-500">关注者</div></div>
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">342</div><div class="text-xs text-gray-500">关注</div></div>
+                        <div class="text-center"><div class="text-lg font-bold text-gray-900">128</div><div class="text-xs text-gray-500">课程</div></div>
+                    </div>
+                </div>
+                <div class="px-4 mt-6 pb-4">
+                    <div class="flex gap-3">
+                        <button class="flex-1 bg-brand-600 text-white py-3 rounded-xl text-sm font-medium">关注</button>
+                        <button class="flex-1 bg-purple-600 text-white py-3 rounded-xl text-sm font-medium">查看课程</button>
+                    </div>
+                </div>
+            </div>
+            ${getTabBar('me')}
+        </div>
+    `;
+}
+
+/* ============================
+   通用工具函数
+   ============================ */
+function toggleVisitorTooltip(element) {
+    const tooltip = element.querySelector('#visitorTooltip');
+    if (tooltip) tooltip.classList.toggle('hidden');
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.remove();
+}
+function showToast(message) {
+    const phoneInner = document.getElementById('phoneInner');
+    const toast = document.createElement('div');
+    toast.className = 'absolute top-4 left-4 right-4 bg-gray-900 text-white text-sm py-3 px-4 rounded-xl text-center z-[70] fade-in';
+    toast.textContent = message;
+    phoneInner.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+// 初始化
+switchRole('teacher_unsubmitted');
+</script>
+
+</body>
+</html>
