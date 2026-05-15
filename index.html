@@ -27,14 +27,12 @@
         .phone-frame { border: 12px solid #1f2937; border-radius: 40px; overflow: hidden; position: relative; background: #fff; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 28px; background: #1f2937; border-radius: 0 0 20px 20px; z-index: 50; }
         .phone-inner { position: absolute; top: 28px; left: 0; right: 0; bottom: 0; overflow: hidden; }
-        .screen-content { height: 100%; overflow-y: auto; position: relative; }
-        .screen-content::-webkit-scrollbar { display: none; }
         .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        .verified-badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .official-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
         .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: white; border-top: 1px solid #f3f4f6; z-index: 20; }
         .page-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 60px; }
-        .page-scroll { flex: 1; overflow-y: auto; }
+        .page-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+        .page-scroll::-webkit-scrollbar { display: none; }
+        .cover-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
@@ -60,7 +58,7 @@ const userData = {
     nickname: 'Teacher_Alice',
     htId: '@teacher_alice_2024',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
-    bio: 'English teacher with 5 years experience. Let\'s learn together!'
+    bio: 'Hello friends! 👋 My name is Alice. I\'m a 28-year-old English teacher. Looking forward to helping you improve your English!'
 };
 
 function switchRole(role) {
@@ -102,13 +100,10 @@ function renderChatPage(status) {
     inner.innerHTML = `
         <div class="page-container fade-in">
             <div class="page-scroll bg-white">
-                <!-- 顶部导航 -->
                 <div class="bg-white border-b border-gray-100 px-4 pt-2 pb-3 flex items-center justify-between sticky top-0 z-10">
                     <h1 class="text-lg font-bold text-gray-900">消息</h1>
                     <button class="text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
                 </div>
-
-                <!-- 聊天列表 -->
                 <div>
                     <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
                         <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 font-bold text-sm">AL</div>
@@ -120,7 +115,6 @@ function renderChatPage(status) {
                             <p class="text-xs text-gray-500 truncate mt-0.5">Are you available for a class tomorrow?</p>
                         </div>
                     </div>
-
                     <div onclick="renderSystemNoticePage()" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50 cursor-pointer bg-brand-50/50">
                         <div class="w-12 h-12 rounded-full bg-brand-600 flex items-center justify-center text-white">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -133,7 +127,6 @@ function renderChatPage(status) {
                             <p class="text-xs text-brand-600 truncate mt-0.5 font-medium">Hi！我们注意到你的昵称/HT ID中包含「Teacher」...</p>
                         </div>
                     </div>
-
                     <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
                         <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-sm">HT</div>
                         <div class="flex-1 min-w-0">
@@ -144,7 +137,6 @@ function renderChatPage(status) {
                             <p class="text-xs text-gray-500 truncate mt-0.5">本周语言学习排行榜已更新！</p>
                         </div>
                     </div>
-
                     <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 active:bg-gray-50">
                         <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">MK</div>
                         <div class="flex-1 min-w-0">
@@ -162,9 +154,6 @@ function renderChatPage(status) {
     `;
 }
 
-/* ============================
-   2. 系统通知详情页
-   ============================ */
 function renderSystemNoticePage() {
     const inner = document.getElementById('phoneInner');
     inner.innerHTML = `
@@ -176,7 +165,6 @@ function renderSystemNoticePage() {
                     </button>
                     <h1 class="text-lg font-bold text-gray-900">系统通知</h1>
                 </div>
-
                 <div class="px-4 pt-4 pb-8 space-y-4">
                     <div onclick="renderProfilePage('unsubmitted')" class="bg-brand-50 border border-brand-100 rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-transform">
                         <div class="flex items-start gap-3">
@@ -198,7 +186,6 @@ function renderSystemNoticePage() {
                             </div>
                         </div>
                     </div>
-
                     <div class="bg-gray-50 rounded-xl p-4">
                         <div class="flex items-start gap-3">
                             <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0">
@@ -221,73 +208,142 @@ function renderSystemNoticePage() {
 }
 
 /* ============================
-   3. 本人 Profile 页（含 Banner）
+   Profile 公共头部组件
+   ============================ */
+function getProfileHeader(hasBanner, bannerStatus) {
+    const bannerHtml = hasBanner ? `
+        <div class="mt-3" id="profileBanner">
+            <div onclick="showTeacherModal('${bannerStatus}')" class="${bannerStatus === 'unsubmitted' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-red-50 border-red-200 text-red-800'} border rounded-xl p-3 flex items-center gap-2 cursor-pointer active:opacity-80">
+                <svg class="w-4 h-4 ${bannerStatus === 'unsubmitted' ? 'text-amber-500' : 'text-red-500'} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span class="text-xs font-medium flex-1">${bannerStatus === 'unsubmitted' ? '你还未完成老师认证' : '你的老师认证申请未通过'}</span>
+                <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+        </div>
+    ` : '';
+
+    return `
+        <!-- 封面背景 -->
+        <div class="h-36 cover-bg relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center opacity-30">
+                <svg class="w-32 h-32 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0z"/></svg>
+            </div>
+            <div class="absolute top-3 right-3 bg-black/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"/></svg>
+                <span>209</span>
+            </div>
+        </div>
+
+        <!-- 用户信息区 -->
+        <div class="px-4 relative">
+            <!-- 头像（与封面对齐，左对齐） -->
+            <div class="absolute -top-10 left-4">
+                <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden relative">
+                    <img src="${userData.avatar}" class="w-full h-full object-cover" alt="avatar">
+                    <div class="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full overflow-hidden border-2 border-white bg-red-500 flex items-center justify-center text-[10px]">🇺🇸</div>
+                </div>
+            </div>
+
+            <div class="pt-11">
+                <!-- 昵称行 -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="text-xl font-bold text-gray-900">${userData.nickname}</h2>
+                    <span class="text-blue-500 text-sm">♂31</span>
+                    <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">VIP</span>
+                    <span class="text-blue-400 text-xs">❄️25</span>
+                </div>
+
+                <!-- HT ID -->
+                <div class="flex items-center gap-1 mt-0.5">
+                    <span class="text-sm text-gray-500">${userData.htId}</span>
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </div>
+
+                <!-- 语言标签 -->
+                <div class="flex gap-3 mt-2">
+                    <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">EN</span><span class="text-gray-400">英语</span></div>
+                    <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">RU</span><span class="text-gray-400">俄语</span></div>
+                    <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">CN</span><span class="text-gray-400">中文</span></div>
+                    <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">ES</span><span class="text-gray-400">西班牙语</span></div>
+                </div>
+
+                <!-- 统计 -->
+                <div class="flex gap-4 mt-3 text-xs text-gray-600">
+                    <span><strong class="text-gray-900 text-sm">1.2k</strong> 正在关注</span>
+                    <span><strong class="text-gray-900 text-sm">5.6k</strong> 粉丝</span>
+                    <span><strong class="text-gray-900 text-sm">365</strong> 天连胜</span>
+                    <span><strong class="text-gray-900 text-sm">136</strong> 天加入</span>
+                </div>
+
+                ${bannerHtml}
+
+                <!-- Bio -->
+                <div class="mt-3 text-sm text-gray-700 leading-relaxed">${userData.bio}</div>
+            </div>
+        </div>
+    `;
+}
+
+/* ============================
+   3. 本人 Profile 页
    ============================ */
 function renderProfilePage(status) {
     const isUnsubmitted = status === 'unsubmitted';
-    const bannerText = isUnsubmitted ? '你还未完成老师认证' : '你的老师认证申请未通过';
-    const bannerColor = isUnsubmitted ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-red-50 border-red-200 text-red-800';
-    const bannerIcon = isUnsubmitted ? 'text-amber-500' : 'text-red-500';
     const inner = document.getElementById('phoneInner');
 
     inner.innerHTML = `
         <div class="page-container fade-in">
             <div class="page-scroll bg-white">
-                <!-- Profile Header -->
-                <div class="relative">
-                    <div class="h-32 bg-gradient-to-br from-brand-400 to-brand-600"></div>
-                    <div class="absolute top-12 left-0 right-0 px-4">
-                        <div class="flex items-end gap-4">
-                            <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
-                                <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
+                ${getProfileHeader(true, status)}
+
+                <!-- Tab 切换 -->
+                <div class="flex border-b border-gray-100 mt-4 sticky top-0 bg-white z-10">
+                    <div class="flex-1 text-center py-2.5 text-brand-600 border-b-2 border-brand-600 font-medium text-sm">个人档案</div>
+                    <div class="flex-1 text-center py-2.5 text-gray-500 text-sm">动态 234</div>
+                    <div class="flex-1 text-center py-2.5 text-gray-500 text-sm">荣誉</div>
+                </div>
+
+                <!-- 内容区 -->
+                <div class="px-4 py-4 space-y-4">
+                    <!-- 语音消息 -->
+                    <div class="flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2.5 w-fit">
+                        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="w-1/3 h-full bg-brand-500 rounded-full"></div>
                             </div>
-                            <div class="mb-1">
-                                <h2 class="text-lg font-bold text-gray-900">${userData.nickname}</h2>
-                                <div class="text-sm text-gray-500">${userData.htId}</div>
-                            </div>
+                            <span class="text-xs text-gray-500">0:36</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Banner -->
-                <div class="mt-14 px-4">
-                    <div class="${bannerColor} border rounded-xl p-4 flex items-start gap-3 cursor-pointer active:opacity-80" onclick="showTeacherModal('${status}')">
-                        <svg class="w-5 h-5 ${bannerIcon} mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        <div class="flex-1">
-                            <div class="text-sm font-medium">${bannerText}</div>
-                            <div class="text-xs mt-1 opacity-80">点击了解详情</div>
-                        </div>
-                        <svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </div>
-                </div>
-
-                <!-- Bio -->
-                <div class="px-4 mt-4">
-                    <div class="text-sm text-gray-700 leading-relaxed">${userData.bio}</div>
-                </div>
-
-                <!-- Stats -->
-                <div class="px-4 mt-6">
-                    <div class="flex justify-around py-4 border-y border-gray-100">
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">1.2k</div><div class="text-xs text-gray-500">关注者</div></div>
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">856</div><div class="text-xs text-gray-500">关注</div></div>
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">234</div><div class="text-xs text-gray-500">Moments</div></div>
-                    </div>
-                </div>
-
-                <!-- Moments -->
-                <div class="px-4 mt-6 pb-4">
-                    <h3 class="font-semibold text-gray-900 mb-3">Moments</h3>
+                    <!-- Moments -->
                     <div class="space-y-3">
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <div class="text-sm text-gray-700">New English speaking class starts next week! Join me to improve your pronunciation 🎓</div>
-                            <div class="text-xs text-gray-400 mt-2">2小时前</div>
+                        <div class="border-b border-gray-50 pb-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                    <img src="${userData.avatar}" class="w-full h-full">
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">${userData.nickname}</div>
+                                    <div class="text-xs text-gray-400">2小时前</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700">New English speaking class starts next week! Join me to improve your pronunciation 🎓</p>
                         </div>
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <div class="text-sm text-gray-700">Looking for serious students who want to learn business English. DM me for details!</div>
-                            <div class="text-xs text-gray-400 mt-2">昨天</div>
+                        <div class="border-b border-gray-50 pb-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                    <img src="${userData.avatar}" class="w-full h-full">
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">${userData.nickname}</div>
+                                    <div class="text-xs text-gray-400">昨天</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700">Looking for serious students who want to learn business English. DM me for details!</p>
                         </div>
                     </div>
                 </div>
@@ -298,7 +354,7 @@ function renderProfilePage(status) {
 }
 
 /* ============================
-   4. 第一次弹窗（Banner 点击）
+   4. 第一次弹窗
    ============================ */
 function showTeacherModal(status) {
     const isUnsubmitted = status === 'unsubmitted';
@@ -335,9 +391,6 @@ function showTeacherModal(status) {
     phoneInner.appendChild(modal);
 }
 
-/* ============================
-   5. 第二次弹窗（暂不认证后）
-   ============================ */
 function showSecondModal() {
     const phoneInner = document.getElementById('phoneInner');
     const modalId = 'modal2_' + Date.now();
@@ -369,7 +422,7 @@ function showSecondModal() {
 }
 
 /* ============================
-   6. 个人资料编辑页
+   5. 个人资料编辑页
    ============================ */
 function renderEditProfilePage() {
     const inner = document.getElementById('phoneInner');
@@ -460,47 +513,32 @@ function saveProfile() {
 }
 
 /* ============================
-   7. 访客查看未认证老师
+   6. 访客查看未认证老师
    ============================ */
 function renderVisitorPage() {
     const inner = document.getElementById('phoneInner');
     inner.innerHTML = `
         <div class="page-container fade-in">
             <div class="page-scroll bg-white">
-                <div class="relative">
-                    <div class="h-32 bg-gradient-to-br from-brand-400 to-brand-600"></div>
-                    <div class="absolute top-12 left-0 right-0 px-4">
-                        <div class="flex items-end gap-4">
-                            <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
-                                <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
-                            </div>
-                            <div class="mb-1">
-                                <h2 class="text-lg font-bold text-gray-900">${userData.nickname}</h2>
-                                <div class="text-sm text-gray-500">${userData.htId}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                ${getProfileHeader(false, '')}
 
-                <div class="mt-14 px-4">
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3 cursor-pointer relative active:bg-gray-100" onclick="toggleVisitorTooltip(this)">
-                        <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- 访客提示 Banner -->
+                <div class="px-4 mt-3">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer active:bg-gray-100" onclick="toggleVisitorTooltip(this)">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <div class="flex-1">
-                            <div class="text-sm font-medium text-gray-700">该用户未持有老师认证标识</div>
-                            <div class="text-xs text-gray-400 mt-1">点击了解官方认证标识</div>
-                        </div>
-                        <span class="text-gray-400 text-lg select-none">[?]</span>
+                        <span class="text-xs text-gray-600 flex-1">该用户未持有老师认证标识</span>
+                        <span class="text-gray-400 text-sm select-none">[?]</span>
                         <div id="visitorTooltip" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-50">
                             <div class="text-sm font-medium text-gray-900 mb-3">认证老师标识如下：</div>
                             <div class="space-y-2">
                                 <div class="flex items-center gap-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
-                                    <div class="verified-badge text-white text-xs px-2 py-1 rounded-md font-medium">官方认证老师</div>
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-md font-medium">官方认证老师</div>
                                     <span class="text-xs text-gray-600">平台官方认证教师</span>
                                 </div>
                                 <div class="flex items-center gap-3 p-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg">
-                                    <div class="official-badge text-white text-xs px-2 py-1 rounded-md font-medium">平台老师</div>
+                                    <div class="bg-gradient-to-r from-blue-400 to-cyan-400 text-white text-xs px-2 py-1 rounded-md font-medium">平台老师</div>
                                     <span class="text-xs text-gray-600">平台合作教师</span>
                                 </div>
                             </div>
@@ -509,18 +547,60 @@ function renderVisitorPage() {
                     </div>
                 </div>
 
-                <div class="px-4 mt-4"><div class="text-sm text-gray-700 leading-relaxed">${userData.bio}</div></div>
-                <div class="px-4 mt-6">
-                    <div class="flex justify-around py-4 border-y border-gray-100">
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">1.2k</div><div class="text-xs text-gray-500">关注者</div></div>
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">856</div><div class="text-xs text-gray-500">关注</div></div>
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">234</div><div class="text-xs text-gray-500">Moments</div></div>
+                <!-- Tab 切换 -->
+                <div class="flex border-b border-gray-100 mt-4 sticky top-0 bg-white z-10">
+                    <div class="flex-1 text-center py-2.5 text-brand-600 border-b-2 border-brand-600 font-medium text-sm">个人档案</div>
+                    <div class="flex-1 text-center py-2.5 text-gray-500 text-sm">动态 234</div>
+                    <div class="flex-1 text-center py-2.5 text-gray-500 text-sm">荣誉</div>
+                </div>
+
+                <!-- 内容区 -->
+                <div class="px-4 py-4 space-y-4">
+                    <div class="flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2.5 w-fit">
+                        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="w-1/3 h-full bg-brand-500 rounded-full"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">0:36</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="border-b border-gray-50 pb-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                    <img src="${userData.avatar}" class="w-full h-full">
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">${userData.nickname}</div>
+                                    <div class="text-xs text-gray-400">2小时前</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700">New English speaking class starts next week! Join me to improve your pronunciation 🎓</p>
+                        </div>
+                        <div class="border-b border-gray-50 pb-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                    <img src="${userData.avatar}" class="w-full h-full">
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">${userData.nickname}</div>
+                                    <div class="text-xs text-gray-400">昨天</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700">Looking for serious students who want to learn business English. DM me for details!</p>
+                        </div>
                     </div>
                 </div>
-                <div class="px-4 mt-6 pb-4">
+
+                <!-- 底部操作按钮 -->
+                <div class="px-4 py-3 border-t border-gray-100 bg-white sticky bottom-0">
                     <div class="flex gap-3">
-                        <button class="flex-1 bg-brand-600 text-white py-3 rounded-xl text-sm font-medium">关注</button>
-                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl text-sm font-medium">发消息</button>
+                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 py-3 rounded-full text-sm font-medium">关注</button>
+                        <button class="flex-1 bg-brand-600 text-white py-3 rounded-full text-sm font-medium">打招呼</button>
                     </div>
                 </div>
             </div>
@@ -530,48 +610,102 @@ function renderVisitorPage() {
 }
 
 /* ============================
-   8. 官方认证老师主页
+   7. 官方认证老师主页
    ============================ */
 function renderOfficialTeacherPage() {
     const inner = document.getElementById('phoneInner');
     inner.innerHTML = `
         <div class="page-container fade-in">
             <div class="page-scroll bg-white">
-                <div class="relative">
-                    <div class="h-32 bg-gradient-to-br from-purple-400 to-pink-500"></div>
-                    <div class="absolute top-12 left-0 right-0 px-4">
-                        <div class="flex items-end gap-4">
-                            <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
-                                <img src="${userData.avatar}" class="w-full h-full" alt="avatar">
-                            </div>
-                            <div class="mb-1">
-                                <h2 class="text-lg font-bold text-gray-900">Teacher_Bob</h2>
-                                <div class="text-sm text-gray-500">@official_teacher_bob</div>
-                                <div class="mt-1.5 inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 text-xs px-2.5 py-1 rounded-full">
-                                    <svg class="w-3.5 h-3.5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <span class="font-medium">官方认证老师，有 TEFL 证书</span>
-                                </div>
-                            </div>
-                        </div>
+                <!-- 封面背景 -->
+                <div class="h-36 cover-bg relative overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-30">
+                        <svg class="w-32 h-32 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0z"/></svg>
+                    </div>
+                    <div class="absolute top-3 right-3 bg-black/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"/></svg>
+                        <span>892</span>
                     </div>
                 </div>
 
-                <div class="mt-20 px-4">
-                    <div class="text-sm text-gray-700 leading-relaxed">Professional English teacher with TESOL certification. 8 years of experience teaching online. Join my courses for structured learning! 🎓</div>
-                </div>
-                <div class="px-4 mt-6">
-                    <div class="flex justify-around py-4 border-y border-gray-100">
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">5.6k</div><div class="text-xs text-gray-500">关注者</div></div>
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">342</div><div class="text-xs text-gray-500">关注</div></div>
-                        <div class="text-center"><div class="text-lg font-bold text-gray-900">128</div><div class="text-xs text-gray-500">课程</div></div>
+                <!-- 用户信息区 -->
+                <div class="px-4 relative">
+                    <div class="absolute -top-10 left-4">
+                        <div class="w-20 h-20 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden relative">
+                            <img src="${userData.avatar}" class="w-full h-full object-cover" alt="avatar">
+                            <div class="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full overflow-hidden border-2 border-white bg-red-500 flex items-center justify-center text-[10px]">🇺🇸</div>
+                        </div>
+                    </div>
+
+                    <div class="pt-11">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h2 class="text-xl font-bold text-gray-900">Teacher_Bob</h2>
+                            <span class="text-blue-500 text-sm">♂35</span>
+                            <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">VIP</span>
+                            <span class="text-blue-400 text-xs">❄️68</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span class="text-sm text-gray-500">@official_teacher_bob</span>
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div class="flex gap-3 mt-2">
+                            <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">EN</span><span class="text-gray-400">英语</span></div>
+                            <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">CN</span><span class="text-gray-400">中文</span></div>
+                            <div class="text-xs text-gray-600 flex items-center gap-0.5"><span class="font-semibold text-gray-800">JP</span><span class="text-gray-400">日语</span></div>
+                        </div>
+                        <div class="flex gap-4 mt-3 text-xs text-gray-600">
+                            <span><strong class="text-gray-900 text-sm">342</strong> 正在关注</span>
+                            <span><strong class="text-gray-900 text-sm">5.6k</strong> 粉丝</span>
+                            <span><strong class="text-gray-900 text-sm">892</strong> 天连胜</span>
+                            <span><strong class="text-gray-900 text-sm">365</strong> 天加入</span>
+                        </div>
+
+                        <!-- 认证标识 -->
+                        <div class="mt-3 inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 text-xs px-2.5 py-1 rounded-full">
+                            <svg class="w-3.5 h-3.5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium">官方认证老师，有 TEFL 证书</span>
+                        </div>
+
+                        <div class="mt-3 text-sm text-gray-700 leading-relaxed">Professional English teacher with TESOL certification. 8 years of experience teaching online. Join my courses for structured learning! 🎓</div>
                     </div>
                 </div>
-                <div class="px-4 mt-6 pb-4">
-                    <div class="flex gap-3">
-                        <button class="flex-1 bg-brand-600 text-white py-3 rounded-xl text-sm font-medium">关注</button>
-                        <button class="flex-1 bg-purple-600 text-white py-3 rounded-xl text-sm font-medium">查看课程</button>
+
+                <!-- Tab 切换 -->
+                <div class="flex border-b border-gray-100 mt-4 sticky top-0 bg-white z-10">
+                    <div class="flex-1 text-center py-2.5 text-brand-600 border-b-2 border-brand-600 font-medium text-sm">个人档案</div>
+                    <div class="flex-1 text-center py-2.5 text-gray-500 text-sm">动态 128</div>
+                    <div class="flex-1 text-center py-2.5 text-gray-500 text-sm">荣誉</div>
+                </div>
+
+                <!-- 内容区 -->
+                <div class="px-4 py-4 space-y-4">
+                    <div class="flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2.5 w-fit">
+                        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="w-2/3 h-full bg-brand-500 rounded-full"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">1:12</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="border-b border-gray-50 pb-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                    <img src="${userData.avatar}" class="w-full h-full">
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">Teacher_Bob</div>
+                                    <div class="text-xs text-gray-400">3小时前</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700">New IELTS speaking course is now open for enrollment! Limited spots available. 🎯</p>
+                        </div>
                     </div>
                 </div>
             </div>
